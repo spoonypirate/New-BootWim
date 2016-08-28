@@ -29,9 +29,10 @@ $features = @("WMI","Scripting","WDS-Tools","SecureStartup","NetFX","PowerShell"
 
 #These are under the assumption that you ran copype.cmd to the below directories
 if ($arch -eq "amd64" ) {
-    $pedir = "C:\WinPEMount\x64"
-    $pemount = "$pedir\mount"
+    $pedir = "C:\WinPEMount"
     $arch2 = "x64"
+    $pemount = "$pedir\$arch2\mount"
+
     $driverstore = "\\fileserver\software`$\Drivers\Sources\DellCatalog_SCCM\WinPE 10\$arch2\network"
     $drivers = @(
         "$driverstore\CFXPV_A00-00\Windows10-x64\rtux64w10.inf",
@@ -43,9 +44,10 @@ if ($arch -eq "amd64" ) {
         "$driverstore\RJFNY_A00-00\NETAX88772.inf"
     )
     } else { 
-    $pedir = "C:\WinPEMount\x86"
-    $pemount = "$pedir\mount"
+    $pedir = "C:\WinPEMount"
     $arch2 = "x86"
+    $pemount = "$pedir\$arch2\mount"
+
     $driverstore = "\\fileserver\software`$\Drivers\Sources\DellCatalog_SCCM\WinPE 10\$arch2\network"
     $drivers = @(
         "$driverstore\CFXPV_A00-00\Windows10-x86\rtux86w10.inf",
@@ -56,7 +58,7 @@ if ($arch -eq "amd64" ) {
         "$driverstore\KJTXR_A00-00\Windows10-x86\E1R6532.inf"
         #"$driverstore\RJFNY_A00-00\NETAX88772.inf"
     )
-   }
+    }
 
 
 $subdirs = @("fwfiles","media","media\sources","mount")
@@ -64,7 +66,7 @@ $fwfiles = @("efisys.bin","etfsboot.com","oscdimg.exe")
 
 if (Test-Path $pemount) { dism.exe /unmount-wim /mountdir:$pemount /discard }
 if (Test-Path $pedir) { Remove-Item -Path $pedir -Recurse }
-if (!(Test-Path -Path "C:\WinPEMount")) { New-Item -Path "C:\WinPEMount" -ItemType Directory }
+if (!(Test-Path -Path $pedir)) { New-Item -Path $pedir -ItemType Directory }
 
 foreach ($subdir in $subdirs) { New-Item -Path $pedir -Name $subdir -ItemType Directory }
 copy-item -path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\Media" -Container -Destination "$pedir" -Force -Recurse
