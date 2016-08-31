@@ -64,17 +64,21 @@ if ($arch -eq "amd64" ) {
 $subdirs = @("fwfiles","media","media\sources","mount")
 $fwfiles = @("efisys.bin","etfsboot.com","oscdimg.exe")
 
-if (Test-Path $pemount) { dism.exe /unmount-wim /mountdir:$pemount /discard }
-if (Test-Path $pedir) { Remove-Item -Path $pedir -Recurse }
-if (!(Test-Path -Path $pedir)) { New-Item -Path $pedir -ItemType Directory }
 
-foreach ($subdir in $subdirs) { New-Item -Path $pedir -Name $subdir -ItemType Directory }
-copy-item -path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\Media" -Container -Destination "$pedir" -Force -Recurse
-copy-item -path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\en-us\winpe.wim" -Destination "$pedir\media\sources\boot.wim"
-foreach ( $fwfile in $fwfiles) { Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\$arch\Oscdimg\$fwfile" -Destination "$pedir\fwfiles\$fwfile" }
+if (Test-Path $pedir) { 
+    if (Test-Path $pemount) { dism.exe /unmount-wim /mountdir:$pemount /discard }
+    if (Test-Path "$pedir\$arch2") { Remove-Item -Path "$pedir\$arch2" -Recurse }
+    Remove-Item -Path $pedir -Recurse #pedir there 
+} 
+New-Item -Path "$pedir\$arch2" -ItemType Directory -Force
+
+foreach ($subdir in $subdirs) { New-Item -Path "$pedir\$arch2" -Name $subdir -ItemType Directory }
+copy-item -path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\Media" -Container -Destination "$pedir\$arch2" -Force -Recurse
+copy-item -path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\en-us\winpe.wim" -Destination "$pedir\$arch2\media\sources\boot.wim"
+foreach ( $fwfile in $fwfiles) { Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\$arch\Oscdimg\$fwfile" -Destination "$pedir\$arch2\fwfiles\$fwfile" }
 $peOCs = "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\$arch\WinPE_OCs"
 
-dism.exe /mount-wim /wimfile:$pedir\media\sources\boot.wim /index:1 /mountdir:$pemount
+dism.exe /mount-wim /wimfile:$pedir\$arch2\media\sources\boot.wim /index:1 /mountdir:$pemount
 
 foreach ( $feature in $features ) {
     dism.exe /image:$pemount /add-package /packagepath:"$peOCs\WinPE-$feature.cab"
